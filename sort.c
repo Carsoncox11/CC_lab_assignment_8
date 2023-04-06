@@ -1,20 +1,139 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+//function prototypes
+void heapSort(int arr[], int n);
+void mergeSort(int pData[], int l, int r);
+int parseData(char *inputFileName, int **ppData);
+void printArray(int pData[], int dataSz);
+void heapify(int arr[], int size, int parentIndex);
 
 int extraMemoryAllocated;
+
+//organizes the heap so that the larger value is the parent
+void heapify(int arr[], int size, int parentIndex)
+{
+	int largestIndex = parentIndex; //set the largest value's index to the parent index by default
+
+	//assign the values of the indexes of the children
+	int leftChild = parentIndex * 2 + 1;
+	int rightChild = parentIndex * 2 + 2;
+
+	//if the left child is larger, the largest value's index is the left child's index
+	if(arr[leftChild] > arr[largestIndex] && leftChild < size)
+		largestIndex = leftChild;
+
+	//if the right child is larger, the largest value's index is the right child's index
+	if(arr[rightChild] > arr[largestIndex] && rightChild < size)
+		largestIndex = rightChild;
+
+	//if the parent was not the largest value
+	if(largestIndex != parentIndex)
+	{
+		//swap the largest value and the parent
+		int temp = arr[parentIndex];
+		arr[parentIndex] = arr[largestIndex];
+		arr[largestIndex] = temp;
+
+		//heapify the rest of that child's branch after the swap
+		heapify(arr, size, largestIndex); 
+	}
+}
 
 // implements heap sort
 // extraMemoryAllocated counts bytes of memory allocated
 void heapSort(int arr[], int n)
 {
-}
+	//create a heap, in a max heap structure
+	for(int i = (n / 2) - 1; i >= 0; i--)
+	{
+		heapify(arr, n, i);
+	}
 
+	//swap the root and the last node in the array, then heapify the remaining values in the array
+	for(int i = n - 1; i >= 0; i--)
+	{
+		int temp = arr[0];
+		arr[0] = arr[i];
+		arr[i] = temp;
+
+		heapify(arr, i, 0);
+	}
+}
 
 // implement merge sort
 // extraMemoryAllocated counts bytes of extra memory allocated
 void mergeSort(int pData[], int l, int r)
 {
+	if (l < r)
+	{
+		//find the midpoint of the array
+        int mid = (l + r) / 2;
+
+		//recursive calls for each half of the array
+        mergeSort(pData, l, mid);
+        mergeSort(pData, mid + 1, r);
+  
+        int i, j, k;
+		int n1 = mid - l + 1;
+		int n2 = r - mid;
+	
+		//malloc space for the temporary arrays
+		int * left = (int *) malloc(n1 * sizeof(int));
+		extraMemoryAllocated += sizeof(left);
+		int * right = (int *) malloc(n2 * sizeof(int));
+		extraMemoryAllocated += sizeof(right);
+	
+		//copy data into both temporary arrays
+		for (i = 0; i < n1; i++)
+			left[i] = pData[l + i];
+
+		for (j = 0; j < n2; j++)
+			right[j] = pData[mid + 1 + j];
+	
+		//starting index of each array
+		i = 0;
+		j = 0;
+		k = l;
+
+		//merge the arrays back together
+		while (i < n1 && j < n2)
+		{
+			if (left[i] <= right[j])
+			{
+				pData[k] = left[i];
+				i++;
+			}
+			else
+			{
+				pData[k] = right[j];
+				j++;
+			}
+
+			k++;
+		}
+	
+		//if there are remaining values, copy them over
+		while (i < n1)
+		{
+			pData[k] = left[i];
+			i++;
+			k++;
+		}
+	
+		//if there are remaining values, copy them over
+		while (j < n2) 
+		{
+			pData[k] = right[j];
+			j++;
+			k++;
+		}
+
+		free(left);
+		free(right);
+    }
 }
 
 // parses input file to an integer array
